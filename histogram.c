@@ -1,10 +1,3 @@
-/******************************************************************************
-* FILE: mpi_scatter.c
-* DESCRIPTION:
-*   MPI tutorial example code: Collective Communications
-* AUTHOR: Blaise Barney
-* LAST REVISED: 04/13/05
-******************************************************************************/
 #include "mpi.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,25 +9,22 @@
 
 int main (int argc, char *argv[])
 {
-    int numtasks, rank, sendcount, recvcount, source, offset, chunksize, leftover, tag1, tag2, status, dest, sum, mysum;
+    int numtasks, rank, chunksize, leftover, i;
     unsigned char sendbuf[HEIGHT * WIDTH];
-    //  = {
-    //     {1.0, 2.0, 3.0, 4.0},
-    //     {5.0, 6.0, 7.0, 8.0},
-    //     {9.0, 10.0, 11.0, 12.0},
-    //     {13.0, 14.0, 15.0, 16.0}
-    // };
-    int histbuf[256];
+    int histbuf[256], finalbuf[256];
+    // int testbuf[256];
+    // MPI_Status status;
+    
     MPI_Init(&argc,&argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
-    // int seed = 42;
+    int gatherbuf[256*numtasks];
     srand(42);
     chunksize = (ARRAYSIZE / numtasks);
     leftover = (ARRAYSIZE % numtasks);
-    tag2 = 1;
-    tag1 = 2;
-    for (int i = 0; i < 256; i++) {
+    unsigned char recvbuf[chunksize];
+
+    for (i = 0; i < 256; i++) {
         histbuf[i] = 0;
     }
     if (rank == MASTER)
@@ -47,48 +37,50 @@ int main (int argc, char *argv[])
             //     sendbuf[h][w][2] = (unsigned char)(rand()%256); 
             // }
         }
-        offset = chunksize + leftover;
-        for (dest = 1; dest < numtasks; dest++) {
-            MPI_Send(&offset, 1, MPI_INT, dest, tag1, MPI_COMM_WORLD);
-            MPI_Send(&sendbuf[offset], chunksize, MPI_DOUBLE, dest, tag2, MPI_COMM_WORLD);
-            printf("Sent %d elements to task %d offset= %d\n",chunksize,dest,offset);
-            offset = offset + chunksize;
+        for (i = 0; i < 256; i++) {
+            finalbuf[i] = 0;
+            // testbuf[i] = 0;
         }
         
         // for (int i = 0; i < HEIGHT * WIDTH; i++)
         // {
-        //     histbuf[sendbuf[i]]++;
+        //     testbuf[sendbuf[i]]++;
         // }
         
         // printf("\n");
         // for (int i = 0; i < 256; i++)
         // {
-        //     printf("%i ", histbuf[i]);
+        //     printf("%i ", testbuf[i]);
         // }
         // printf("\n");
     }
+    MPI_Scatter(&sendbuf[leftover], chunksize, MPI_CHAR, &recvbuf, chunksize, MPI_CHAR, MASTER, MPI_COMM_WORLD);
+    if (rank == MASTER) {
+        for (i = 0; i < leftover; i++) {
+            histbuf[sendbuf[i]]++;
+        }
+    }
+    for (i = 0; i < chunksize; i++) {
+        histbuf[recvbuf[i]]++;
+    }
+    
+    MPI_Gather(&histbuf, 256, MPI_INT, &gatherbuf, 256, MPI_INT, MASTER, MPI_COMM_WORLD);
 
-/***** Non-master tasks only *****/
-
-    if (rank > MASTER) {
-
-        /* Receive my portion of array from the master task */
-        source = MASTER;
-        MPI_Recv(&offset, 1, MPI_INT, source, tag1, MPI_COMM_WORLD, &status);
-        MPI_Recv(&sendbuf[offset], chunksize, MPI_DOUBLE, source, tag2, MPI_COMM_WORLD, &status);
-
-        /* Do my part of the work */
-        mysum = update(offset, chunksize, rank);
-
-        /* Send my results back to the master task */
-        dest = MASTER;
-        MPI_Send(&offset, 1, MPI_INT, dest, tag1, MPI_COMM_WORLD);
-        MPI_Send(&sendbuf[offset], chunksize, MPI_DOUBLE, MASTER, tag2, MPI_COMM_WORLD);
-
-        /* Use sum reduction operation to obtain final sum */
-        MPI_Reduce(&mysum, &sum, 1, MPI_DOUBLE, MPI_SUM, MASTER, MPI_COMM_WORLD);
-
-    } /* end of non-master */
+    if (rank == MASTER)
+    {
+        for (i = 0; i < 256*numtasks; i++)
+        {            
+            // printf("%d + %d = ",finalbuf[i%256], gatherbuf[i]);
+            finalbuf[i%256]+=gatherbuf[i];
+            // printf("%d\n", finalbuf[i%256]);
+        }
+        printf("\n");
+        for (int i = 0; i < 256; i++)
+        {
+            printf("%i ", finalbuf[i]);
+        }
+        printf("\n");
+    }
 
     MPI_Finalize();
 }
