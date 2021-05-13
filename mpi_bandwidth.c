@@ -38,7 +38,7 @@ int compareArrays(double a[], double b[], int n) {
 int main (int argc, char *argv[])
 {
     int     numtasks, rank, n, i, j, rndtrps, start, end, incr,
-            src, dest, rc, tag=1, taskpairs[MAXTASKS], namelength, sizes[TESTS];
+            src, dest, tag=1, taskpairs[MAXTASKS], namelength, sizes[TESTS];
     double  sendbuf[ENDSIZE], recvbuf[ENDSIZE], thistime, bw, bestbw, worstbw, totalbw, avgbw,
             bestall, avgall, worstall, best, worst,
             timings[MAXTASKS/2][3], tmptimes[3],
@@ -55,7 +55,7 @@ int main (int argc, char *argv[])
     MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
     if (numtasks % 2 != 0) {
         printf("ERROR: Must be an even number of tasks!  Quitting...\n");
-        MPI_Abort(MPI_COMM_WORLD, rc);
+        MPI_Abort(MPI_COMM_WORLD, MPI_ERR_DIMS);
         exit(0);
     }
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -71,7 +71,6 @@ int main (int argc, char *argv[])
     sizes[3] = end;
     for (i=0; i<end; i++){
         sendbuf[i] = (double)rand()/RAND_MAX;
-        // msgbuf[i] = 1.79769e+300;
     }
 
     /* All tasks send their host name to task 0 */
@@ -113,7 +112,7 @@ int main (int argc, char *argv[])
             worstbw = .99E+99;
             totalbw = 0.0;
             nbytes =  sizeof(double) * n;
-            printf("%d\n", nbytes);
+            printf("%llu\n", nbytes);
             for (i=1; i<=rndtrps; i++){
                 t1 = MPI_Wtime();
                 MPI_Ssend(&sendbuf, n, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD);
@@ -182,8 +181,6 @@ int main (int argc, char *argv[])
         }
     }
 
-
-
     /**************************** second half of tasks ***************************/
     /* These tasks do nothing more than send and receive with their partner task */
 
@@ -199,7 +196,5 @@ int main (int argc, char *argv[])
         }
     }
 
-
     MPI_Finalize();
-
 }  /* end of main */
