@@ -13,3 +13,4 @@
 *.o
 *.txt
 *.dat
+.PRUN_ENVIRONMENT.*

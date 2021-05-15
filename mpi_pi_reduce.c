@@ -30,20 +30,21 @@ int main (int argc, char *argv[])
    // struct timeval begin, end;
    double	homepi,         /* value of pi calculated by current task */
       pisum,	        /* sum of tasks' pi values */
-      pi,	        /* average of pi after "darts" is thrown */
-      startT, endT,
-      avepi;	        /* average pi value for all iterations */
+      // pi,	        /* average of pi after "darts" is thrown */
+      startT, endT;
+      // avepi;	        /* average pi value for all iterations */
    int	taskid,	        /* task ID - also used as seed number */
       numtasks,       /* number of tasks */
-      rc,             /* return code */
-      i,
+      // rc,             /* return code */
+      // i,
       dart;
    
-   MPI_Status status;
+   // MPI_Status status;
    /* Obtain number of tasks and task ID */
    MPI_Init(&argc,&argv);
    MPI_Comm_size(MPI_COMM_WORLD,&numtasks);
    MPI_Comm_rank(MPI_COMM_WORLD,&taskid);
+   startT = 0.0;
    if (taskid == MASTER){
       startT = MPI_Wtime();
       // gettimeofday(&begin, 0);
@@ -52,11 +53,11 @@ int main (int argc, char *argv[])
    // printf ("MPI task %d has started...\n", taskid);
 
    /* Set seed for random number generator equal to task ID */
-   srandom (taskid);
+   srandom(taskid);
    dart = (int)floor(DARTS/numtasks);
    // printf("%d ", dart);
    // dart = DARTS;
-   avepi = 0;
+   // avepi = 0;
    // for (i = 0; i < ROUNDS; i++) {
    /* All tasks calculate pi using dartboard algorithm */
    homepi = dboard(dart, ROUNDS);
@@ -73,15 +74,14 @@ int main (int argc, char *argv[])
    * - MPI_COMM_WORLD is the group of tasks that will participate.
    */
 
-   rc = MPI_Reduce(&homepi, &pisum, 1, MPI_DOUBLE, MPI_SUM,
-                  MASTER, MPI_COMM_WORLD);
+   MPI_Reduce(&homepi, &pisum, 1, MPI_DOUBLE, MPI_SUM, MASTER, MPI_COMM_WORLD);
 
    /* Master computes average for this iteration and all iterations */
-   if (taskid == MASTER) {
-      avepi = pisum/numtasks;
-      // avepi = ((avepi * i) + pi)/(i + 1); 
-      // printf("   After %8d throws, average value of pi = %10.8f\n",(DARTS),avepi);
-   }    
+   // if (taskid == MASTER) {
+   //    avepi = pisum/numtasks;
+   //    // avepi = ((avepi * i) + pi)/(i + 1); 
+   //    // printf("   After %8d throws, average value of pi = %10.8f\n",(DARTS),avepi);
+   // }    
    // } 
    if (taskid == MASTER){
       endT = MPI_Wtime();
