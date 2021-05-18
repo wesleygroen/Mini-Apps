@@ -33,25 +33,6 @@ int main (int argc, char *argv[])
     unsigned char redbuf[chunksize], greenbuf[chunksize], bluebuf[chunksize], ybuf[chunksize], ubuf[chunksize], vbuf[chunksize];
     leftover = (ARRAYSIZE % numtasks);
     unsigned char recvbuf[chunksize];
-    // init[0]=1;
-    // for (i = 0; i < 10; i++)
-    // {
-    //     MPI_Bcast(&init, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
-    //     MPI_Gather(&init, 1, MPI_INT, &initbuf, 1, MPI_INT, MASTER, MPI_COMM_WORLD);
-    //     // if (rank == MASTER) {
-    //     //     for (i = 1; i < numtasks; i++)
-    //     //     {
-    //     //         MPI_Send(&init, 1, MPI_INT, i, 5, MPI_COMM_WORLD, &sendRequest);
-    //     //     }
-    //     //     for (i = 1; i < numtasks; i++)
-    //     //     {
-    //     //         MPI_Recv(&init, 1, MPI_INT, i, 6, MPI_COMM_WORLD, &status);
-    //     //     }
-    //     // } else {
-    //     //     MPI_Recv(&init, 1, MPI_INT, MASTER, 5, MPI_COMM_WORLD, &status);
-    //     //     MPI_Send(&init, 1, MPI_INT, MASTER, 6, MPI_COMM_WORLD);
-    //     // }
-    // }
     
     if (rank == MASTER)
     {
@@ -63,13 +44,13 @@ int main (int argc, char *argv[])
         }
     }
     /* pre-load communications */
-    for (i = 0; i < 100; i++)
-    {
-        MPI_Scatter(&red[leftover], chunksize, MPI_CHAR, &recvbuf, chunksize, MPI_CHAR, MASTER, MPI_COMM_WORLD);
-    }
+    // for (i = 0; i < 100; i++)
+    // {
+    //     MPI_Scatter(&red[leftover], chunksize, MPI_CHAR, &recvbuf, chunksize, MPI_CHAR, MASTER, MPI_COMM_WORLD);
+    // }
     
 
-    MPI_Barrier(MPI_COMM_WORLD);
+    // MPI_Barrier(MPI_COMM_WORLD);
 
 
     /* Master Task*/

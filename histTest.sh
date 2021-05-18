@@ -1,5 +1,5 @@
 #!/bin/bash
-out=hist4.txt
+out=hist5.txt
 let i=0
 # while [ $i -lt 8 ]; do
 #     let i+=2
@@ -9,8 +9,8 @@ let i=0
 #     let i+=4
 #     prun -np 1 -$i -t 60 -script \$PRUN_ETC/prun-openmpi ./histogram | tee -a ${out} &
 # done
-# let i=1
-while [ $i -lt 52 ]; do
+let i=10
+while [ $i -lt 20 ]; do
     let i+=1
     prun -np $i -16 -t 120 -script \$PRUN_ETC/prun-openmpi ./histogram | tee -a ${out} &
 done

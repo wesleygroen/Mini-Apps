@@ -14,3 +14,4 @@
 *.txt
 *.dat
 .PRUN_ENVIRONMENT.*
+*.out
