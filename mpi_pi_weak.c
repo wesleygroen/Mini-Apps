@@ -27,32 +27,22 @@ double dboard (int darts, int rounds);
 
 int main (int argc, char *argv[])
 {
-   // struct timeval begin, end;
    double	homepi,         /* value of pi calculated by current task */
       pisum,	        /* sum of tasks' pi values */
       // pi,	        /* average of pi after "darts" is thrown */
-      startT, endT,
-      avepi;	        /* average pi value for all iterations */
+      startT, endT, dT, avgT, minT, maxT;
+      // avepi;	        /* average pi value for all iterations */
    int	taskid,	        /* task ID - also used as seed number */
       numtasks;       /* number of tasks */
    
-   // MPI_Status status;
    /* Obtain number of tasks and task ID */
    MPI_Init(&argc,&argv);
    MPI_Comm_size(MPI_COMM_WORLD,&numtasks);
    MPI_Comm_rank(MPI_COMM_WORLD,&taskid);
-   startT = 0.0;
-   if (taskid == MASTER){
-      startT = MPI_Wtime();
-   }
-   // printf ("MPI task %d has started...\n", taskid);
+   double times[numtasks];
 
    /* Set seed for random number generator equal to task ID */
-   srandom (taskid);
-   avepi = 0;
-   /* All tasks calculate pi using dartboard algorithm */
-   homepi = dboard(DARTS, ROUNDS);
-
+   srandom(taskid);
    /* Use MPI_Reduce to sum values of homepi across all tasks 
    * Master will store the accumulated value in pisum 
    * - homepi is the send buffer
@@ -64,17 +54,41 @@ int main (int argc, char *argv[])
    *   floating-point vector addition).  Must be declared extern.
    * - MPI_COMM_WORLD is the group of tasks that will participate.
    */
-
-   MPI_Reduce(&homepi, &pisum, 1, MPI_DOUBLE, MPI_SUM, MASTER, MPI_COMM_WORLD);
-
-   /* Master computes average for this iteration and all iterations */
-   if (taskid == MASTER) {
-      avepi = pisum/numtasks;
-   }    
    if (taskid == MASTER){
+      // MPI_Barrier(MPI_COMM_WORLD);
+      startT = MPI_Wtime();
+      homepi = dboard(DARTS, ROUNDS);
       endT = MPI_Wtime();
-      printf("%04d %f\n", numtasks, endT-startT);
+      MPI_Reduce(&homepi, &pisum, 1, MPI_DOUBLE, MPI_SUM, MASTER, MPI_COMM_WORLD);
+      // avepi = pisum/numtasks;
+      dT = endT - startT;
+      MPI_Gather(&dT, 1, MPI_DOUBLE, &times, 1, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
+
+      avgT = 0.0;
+      minT = 999999.9;
+      maxT = 0.0;
+      for (int i = 0; i < numtasks; i++) {
+         avgT += times[i];
+         if (times[i]>maxT) {
+               maxT = times[i];
+         }
+         if (times[i]<minT) {
+               minT = times[i];
+         }
+      }
+      avgT = avgT / numtasks;
+      printf("%04d %f %f %f\n", numtasks, avgT, minT, maxT);
    }
+   else {
+      // MPI_Barrier(MPI_COMM_WORLD);
+      startT = MPI_Wtime();
+      homepi = dboard(DARTS, ROUNDS);
+      endT = MPI_Wtime();
+      MPI_Reduce(&homepi, &pisum, 1, MPI_DOUBLE, MPI_SUM, MASTER, MPI_COMM_WORLD);
+      dT = endT - startT;
+      MPI_Gather(&dT, 1, MPI_DOUBLE, &times, 1, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
+   }
+
    MPI_Finalize();
    return 0;
 }

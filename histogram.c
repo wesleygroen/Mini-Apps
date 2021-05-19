@@ -13,7 +13,7 @@ int main (int argc, char *argv[])
     unsigned char sendbuf[ARRAYSIZE];
     int histbuf[256], finalbuf[256];
     int histbuf2[256], finalbuf2[256];
-    double tStart, tEnd, tCompute, tAvg, tMin, tMax;
+    // double tStart, tEnd, tCompute, tAvg, tMin, tMax;
     double scatterStart, scatterEnd, gatherStart, gatherEnd, sendStart, sendEnd, recvStart, recvEnd;
     // double globStart, globEnd, globStart2, globEnd2, t2Min, t2Max, t2Avg, 
     // int testbuf[256];

@@ -27,7 +27,6 @@ double dboard (int darts, int rounds);
 
 int main (int argc, char *argv[])
 {
-   // struct timeval begin, end;
    double	homepi,         /* value of pi calculated by current task */
       pisum,	        /* sum of tasks' pi values */
       // pi,	        /* average of pi after "darts" is thrown */
@@ -35,11 +34,8 @@ int main (int argc, char *argv[])
       // avepi;	        /* average pi value for all iterations */
    int	taskid,	        /* task ID - also used as seed number */
       numtasks,       /* number of tasks */
-      // rc,             /* return code */
-      // i,
       dart;
-   
-   // MPI_Status status;
+
    /* Obtain number of tasks and task ID */
    MPI_Init(&argc,&argv);
    MPI_Comm_size(MPI_COMM_WORLD,&numtasks);
@@ -47,18 +43,12 @@ int main (int argc, char *argv[])
    startT = 0.0;
    if (taskid == MASTER){
       startT = MPI_Wtime();
-      // gettimeofday(&begin, 0);
-      // printf("runtime: %lu sec\n", begin.tv_sec);
    }
-   // printf ("MPI task %d has started...\n", taskid);
 
    /* Set seed for random number generator equal to task ID */
    srandom(taskid);
    dart = (int)floor(DARTS/numtasks);
-   // printf("%d ", dart);
-   // dart = DARTS;
-   // avepi = 0;
-   // for (i = 0; i < ROUNDS; i++) {
+
    /* All tasks calculate pi using dartboard algorithm */
    homepi = dboard(dart, ROUNDS);
 
@@ -73,28 +63,11 @@ int main (int argc, char *argv[])
    *   floating-point vector addition).  Must be declared extern.
    * - MPI_COMM_WORLD is the group of tasks that will participate.
    */
+   MPI_Reduce(&homepi, &pisum, 1, MPI_DOUBLE, MPI_SUM, MASTER, MPI_COMM_WORLD); 
 
-   MPI_Reduce(&homepi, &pisum, 1, MPI_DOUBLE, MPI_SUM, MASTER, MPI_COMM_WORLD);
-
-   /* Master computes average for this iteration and all iterations */
-   // if (taskid == MASTER) {
-   //    avepi = pisum/numtasks;
-   //    // avepi = ((avepi * i) + pi)/(i + 1); 
-   //    // printf("   After %8d throws, average value of pi = %10.8f\n",(DARTS),avepi);
-   // }    
-   // } 
    if (taskid == MASTER){
       endT = MPI_Wtime();
       printf("%04d %f\n", numtasks, endT-startT);
-      /* gettimeofday(&end, 0);
-      // long sec = end.tv_sec - begin.tv_sec;
-      // long msec = end.tv_usec - begin.tv_usec;
-      // double runtime = sec + msec*1e-6;
-      // printf("%04d %.6f\n", numtasks, runtime);
-      // printf("runtime: %lu %lu sec\n", end.tv_sec, begin.tv_sec);
-      // printf("%.6f\n", runtime);
-      // printf("runtime: %.6f sec\n", runtime);
-       printf ("\nReal value of PI: 3.1415926535897 \n");*/
    }
    MPI_Finalize();
    return 0;
@@ -161,11 +134,6 @@ double dboard(int darts, int rounds)
          if ((sqr(x_coord) + sqr(y_coord)) <= 1.0)
             score++;
       }
-      // if (score < temp){
-      //    printf("OVERFLOW! %d\n",score, temp);
-      //    return(0);
-      // }
-      // temp = score;
    }
    
    /* calculate pi */
