@@ -1,7 +1,7 @@
 #!/bin/bash
 mkdir -p results
 path=results/
-let maxNodes=34
+let maxNodes=32
 let coresPerNode=28
 let threadsPerNode=28
 let longLimit=600
