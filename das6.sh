@@ -3,7 +3,7 @@ mkdir -p results
 path=results/
 let maxNodes=32
 let coresPerNode=28
-let threadsPerNode=28
+let threadsPerNode=56
 let longLimit=600
 let midLimit=240
 let shortLimit=60
