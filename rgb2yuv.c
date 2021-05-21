@@ -9,23 +9,15 @@
 
 int main (int argc, char *argv[])
 {
-    int numtasks, rank, chunksize, leftover, i, j, index, tag;// init[1];//, msgsize;
+    int numtasks, rank, chunksize, leftover, i, j, index, tag;
     unsigned char red[ARRAYSIZE], green[ARRAYSIZE], blue[ARRAYSIZE], y[ARRAYSIZE], u[ARRAYSIZE], v[ARRAYSIZE];
-    // int histbuf[256], finalbuf[256];
-    // int histbuf2[256], finalbuf2[256];
-    // double scatterStart, scatterEnd, gatherStart, gatherEnd;
     double sendStart, sendEnd, recvStart, recvEnd;
-    // double globStart, globEnd, globStart2, globEnd2, t2Min, t2Max, t2Avg;
     double tCompute, tStart, tEnd, tAvg, tMin, tMax;
-    // int testbuf[256];
     MPI_Status status;
-    // MPI_Request sendRequest;// recvRequest;
     
     MPI_Init(&argc,&argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
-    // int gatherbuf[256*numtasks];
-    // int initbuf[numtasks];
     double timebuf[numtasks];
     srand(42);
     sendStart = sendEnd = recvStart = recvEnd = tAvg = tMax = 0.0;
@@ -34,21 +26,6 @@ int main (int argc, char *argv[])
     unsigned char redbuf[chunksize], greenbuf[chunksize], bluebuf[chunksize], ybuf[chunksize], ubuf[chunksize], vbuf[chunksize];
     leftover = (ARRAYSIZE % numtasks);
     unsigned char recvbuf[chunksize];
-    // tAvg = 0.0;
-    // tMax = 0.0;
-    
-    // if (rank == MASTER)
-    // {
-    //     for (i = 0; i < ARRAYSIZE; i++) {
-    //         red[i] = (unsigned char)(rand()%256);
-    //         green[i] = (unsigned char)(rand()%256);
-    //         blue[i] = (unsigned char)(rand()%256);
-            
-    //     }
-    // }
-
-    // MPI_Scatter(&red[leftover], chunksize, MPI_CHAR, &recvbuf, chunksize, MPI_CHAR, MASTER, MPI_COMM_WORLD);
-    // MPI_Barrier(MPI_COMM_WORLD);
 
     /* Master Task*/
     if (rank == MASTER)
@@ -57,7 +34,6 @@ int main (int argc, char *argv[])
             red[i] = (unsigned char)(rand()%256);
             green[i] = (unsigned char)(rand()%256);
             blue[i] = (unsigned char)(rand()%256);
-            
         }
         MPI_Scatter(&red[leftover], chunksize, MPI_CHAR, &recvbuf, chunksize, MPI_CHAR, MASTER, MPI_COMM_WORLD);
         MPI_Barrier(MPI_COMM_WORLD);
@@ -100,10 +76,6 @@ int main (int argc, char *argv[])
         // printf("%04d %f %f\n", numtasks, (sendEnd-sendStart)/ITERATIONS, (recvEnd-recvStart)/ITERATIONS);
         tCompute = tEnd - tStart;
         MPI_Gather(&tCompute, 1, MPI_DOUBLE, timebuf, 1, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
-
-        // tAvg = 0.0;
-        // tMin = 999999.9;
-        // tMax = 0.0;
 
         for (i = 0; i < numtasks; i++) {
             tAvg += timebuf[i];
@@ -150,27 +122,5 @@ int main (int argc, char *argv[])
         MPI_Gather(&tCompute, 1, MPI_DOUBLE, timebuf, 1, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
     }
 
-    // tCompute = tEnd - tStart;
-    // MPI_Gather(&tCompute, 1, MPI_DOUBLE, timebuf, 1, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
-    // if (rank == MASTER)
-    // {
-    //     tAvg = 0.0;
-    //     tMin = 999999.9;
-    //     tMax = 0.0;
-
-    //     for (i = 0; i < numtasks; i++) {
-    //         tAvg += timebuf[i];
-    //         if (timebuf[i]>tMax) {
-    //             tMax = timebuf[i];
-    //         }
-    //         if (timebuf[i]<tMin) {
-    //             tMin = timebuf[i];
-    //         }
-    //     }
-    //     tAvg = tAvg/numtasks;
-    //     // printf("Compute Min: %f\tAvg: %f\tMax: %f\n", tMin, tAvg, tMax);
-    //     printf("%04d %f %f ", numtasks, (sendEnd-sendStart)/ITERATIONS, (recvEnd-recvStart)/ITERATIONS);
-    //     printf("%f %f %f\n", tMin, tAvg, tMax);
-    // }
     MPI_Finalize();
 }

@@ -54,6 +54,9 @@ if (rank == 0) {
    printf("Rep#       T1               T2            deltaT\n");
    dest = 1;
    source = 1;
+   rc = MPI_Send(&msg, 1, MPI_BYTE, dest, tag, MPI_COMM_WORLD);
+   rc = MPI_Recv(&msg, 1, MPI_BYTE, source, tag, MPI_COMM_WORLD, &status);
+   MPI_Barrier(MPI_COMM_WORLD);
    for (n = 1; n <= reps; n++) {
       T1 = MPI_Wtime();     /* start time */
       /* send message to worker - message tag set to 1.  */
@@ -66,8 +69,7 @@ if (rank == 0) {
          }
       /* Now wait to receive the echo reply from the worker  */
       /* If return code indicates error quit */
-      rc = MPI_Recv(&msg, 1, MPI_BYTE, source, tag, MPI_COMM_WORLD, 
-                    &status);
+      rc = MPI_Recv(&msg, 1, MPI_BYTE, source, tag, MPI_COMM_WORLD, &status);
       if (rc != MPI_SUCCESS) {
          printf("Receive error in task 0!\n");
          MPI_Abort(MPI_COMM_WORLD, rc);
@@ -78,21 +80,23 @@ if (rank == 0) {
       /* calculate round trip time and print */
       deltaT = T2 - T1;
       printf("%4d  %8.8f  %8.8f  %2.8f\n", n, T1, T2, deltaT);
-         sumT += deltaT;
-      }
+      sumT += deltaT;
+   }
    avgT = (sumT*1000000)/reps;
    printf("***************************************************\n");
    printf("\n*** Avg round trip time = %d microseconds\n", avgT);
    printf("*** Avg one way latency = %d microseconds\n", avgT/2);
-   } 
+} 
 
 else if (rank == 1) {
    printf("task %d has started...\n", rank);
    dest = 0;
    source = 0;
+   rc = MPI_Recv(&msg, 1, MPI_BYTE, source, tag, MPI_COMM_WORLD, &status);
+   rc = MPI_Send(&msg, 1, MPI_BYTE, dest, tag, MPI_COMM_WORLD);
+   MPI_Barrier(MPI_COMM_WORLD);
    for (n = 1; n <= reps; n++) {
-      rc = MPI_Recv(&msg, 1, MPI_BYTE, source, tag, MPI_COMM_WORLD, 
-                    &status);
+      rc = MPI_Recv(&msg, 1, MPI_BYTE, source, tag, MPI_COMM_WORLD, &status);
       if (rc != MPI_SUCCESS) {
          printf("Receive error in task 1!\n");
          MPI_Abort(MPI_COMM_WORLD, rc);
