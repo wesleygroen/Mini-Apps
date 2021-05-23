@@ -25,7 +25,7 @@ while [ $i -lt ${runs} ]; do
     ./testBW.sh ./mpi_bandwidth 2 ${threadsPerNode} ${path}bandwidth2Nodes${i}D6.txt
     ./testBW.sh ./mpi_bandwidth 4 ${threadsPerNode} ${path}bandwidth4Nodes${i}D6.txt
     ./testBW.sh ./mpi_bandwidth 8 ${threadsPerNode} ${path}bandwidth8Nodes${i}D6.txt
-    ./testBW.sh ./mpi_bandwidth 16 ${threadsPerNode} ${path}bandwidth16Nodes${i}D6.txt
-    ./testBW.sh ./mpi_bandwidth ${maxNodes} ${threadsPerNode} ${path}bandwidthMaxNodes${i}D6.txt
+    # ./testBW.sh ./mpi_bandwidth 16 ${threadsPerNode} ${path}bandwidth16Nodes${i}D6.txt
+    # ./testBW.sh ./mpi_bandwidth ${maxNodes} ${threadsPerNode} ${path}bandwidthMaxNodes${i}D6.txt
 done
 
