@@ -17,6 +17,7 @@ while [ $i -lt ${runs} ]; do
     ./test.sh ./rgb2gray 0 ${maxNodes} ${coresPerNode} ${midLimit} ${path}rgb2gray${i}D6.txt
     ./test.sh ./rgb2yuv 0 ${maxNodes} ${coresPerNode} ${midLimit} ${path}rgb2yuv${i}D6.txt
     ./test.sh ./mpi_mm 0 ${maxNodes} ${coresPerNode} ${midLimit} ${path}matrixMultiply${i}D6.txt
+    ./test.sh ./mpi_mm_broadcast 0 ${maxNodes} ${coresPerNode} ${midLimit} ${path}matrixMultiplyBC${i}D6.txt
     ./test.sh ./mpi_pi_strong 0 4 ${coresPerNode} ${longLimit} ${path}strongPi${i}D6.txt
     ./test.sh ./mpi_pi_strong 4 8 ${coresPerNode} ${midLimit} ${path}strongPi${i}D6.txt
     ./test.sh ./mpi_pi_strong 8 ${maxNodes} ${coresPerNode} ${shortLimit} ${path}strongPi${i}D6.txt
