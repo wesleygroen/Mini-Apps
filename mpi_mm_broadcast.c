@@ -38,7 +38,8 @@ int main (int argc, char *argv[])
 	double	a[NRA][NCA],       /* matrix A to be multiplied */
 			b[NCA][NCB],       /* matrix B to be multiplied */
 			c[NRA][NCB],       /* result matrix C */
-			start, end;
+			start, end, t, best, avg, worst,
+			sendStart, sendEnd;
 	MPI_Status status;
 	MPI_Init(&argc,&argv);
 	MPI_Comm_rank(MPI_COMM_WORLD,&taskid);
@@ -49,6 +50,7 @@ int main (int argc, char *argv[])
 		exit(1);
 	}
 	numworkers = numtasks-1;
+	double timebuf[numtasks];
 
 	MPI_Barrier(MPI_COMM_WORLD);
 	/**************************** master task ************************************/
@@ -74,6 +76,7 @@ int main (int argc, char *argv[])
 		extra = NRA%numworkers;
 		offset = 0;
 		mtype = FROM_MASTER;
+		sendStart = MPI_Wtime();
 		MPI_Bcast(&b, NCA*NCB, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
 		for (dest=1; dest<=numworkers; dest++)
 		{
@@ -84,6 +87,7 @@ int main (int argc, char *argv[])
 			// MPI_Send(&b, NCA*NCB, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);
 			offset = offset + rows;
 		}
+		sendEnd = MPI_Wtime();
 
 		/* Receive results from worker tasks */
 		mtype = FROM_WORKER;
@@ -95,7 +99,25 @@ int main (int argc, char *argv[])
 			MPI_Recv(&c[offset][0], rows*NCB, MPI_DOUBLE, source, mtype, MPI_COMM_WORLD, &status);
 		}
 		end = MPI_Wtime();
-		printf("%04d %.6f\n", numtasks, end-start);
+		MPI_Gather(&t, 1, MPI_DOUBLE, &timebuf, 1, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
+		best = 10e99;
+		worst = 0.0;
+		avg = 0.0;
+		for (i = 1; i < numtasks; i++)
+		{
+			if (timebuf[i]>worst)
+			{
+				worst = timebuf[i];
+			}
+			if (timebuf[i]<best)
+			{
+				best = timebuf[i];
+			}
+			avg = avg + timebuf[i];
+		}
+		avg = avg / numworkers;
+		
+		printf("%04d %f %f %f %f %f\n", numtasks, end-start, sendEnd-sendStart, best, avg, worst);
 	}
 
 
@@ -109,7 +131,7 @@ int main (int argc, char *argv[])
 		MPI_Recv(&rows, 1, MPI_INT, MASTER, mtype, MPI_COMM_WORLD, &status);
 		MPI_Recv(&a, rows*NCA, MPI_DOUBLE, MASTER, mtype, MPI_COMM_WORLD, &status);
 		// MPI_Recv(&b, NCA*NCB, MPI_DOUBLE, MASTER, mtype, MPI_COMM_WORLD, &status);
-
+		start = MPI_Wtime();
 		for (k=0; k<NCB; k++)
 		{
 			for (i=0; i<rows; i++)
@@ -120,10 +142,13 @@ int main (int argc, char *argv[])
 				}
 			}
 		}
+		end = MPI_Wtime();
 		mtype = FROM_WORKER;
 		MPI_Send(&offset, 1, MPI_INT, MASTER, mtype, MPI_COMM_WORLD);
 		MPI_Send(&rows, 1, MPI_INT, MASTER, mtype, MPI_COMM_WORLD);
 		MPI_Send(&c, rows*NCB, MPI_DOUBLE, MASTER, mtype, MPI_COMM_WORLD);
+		t = end - start;
+		MPI_Gather(&t, 1, MPI_DOUBLE, &timebuf, 1, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
 	}
 
 	MPI_Finalize();
