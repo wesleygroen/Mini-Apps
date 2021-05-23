@@ -19,7 +19,7 @@
 #define ENDSIZE       100000000
 // #define ENDSIZE    268435456
 // #define INCREMENT     100000
-#define ROUNDTRIPS    100
+#define ROUNDTRIPS    20
 #define TESTS         4
 
 int compareArrays(double a[], double b[], int n) {
